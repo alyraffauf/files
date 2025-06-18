@@ -83,51 +83,54 @@
                 Consider including this in the project's development shell.
               '';
               type = lib.types.package;
-              default = pkgs.writeShellApplication {
-                name = psArgs.config.files.writer.exeFilename;
-                runtimeInputs = [ pkgs.git ];
-                text = lib.pipe cfg.files [
-                  (map (
-                    { path_, drv }:
-                    ''
-                      dir=$(dirname ${path_})
-                      mkdir -p "$dir"
-                      cat ${drv} > ${lib.escapeShellArg path_}
-                    ''
-                  ))
-                  (lib.concat [
-                    ''
-                      git_root="$(git rev-parse --show-toplevel)"
-                      cd "$git_root"
-                    ''
-                  ])
-                  lib.concatLines
-                ];
-              };
               readOnly = true;
             };
           };
         };
       };
 
-      config.checks = lib.pipe cfg.files [
-        (map (
-          { path_, drv }:
-          {
-            name = "files/${path_}";
-            value =
-              pkgs.runCommand "check-file-${path_}"
-                {
-                  nativeBuildInputs = [ pkgs.difftastic ];
-                }
-                ''
-                  difft --exit-code --display inline ${drv} ${cfg.projectRoot + "/${path_}"}
-                  touch $out
-                '';
-          }
-        ))
-        lib.listToAttrs
-      ];
+      config = {
+        files.writer.drv = pkgs.writeShellApplication {
+          name = psArgs.config.files.writer.exeFilename;
+          runtimeInputs = [ pkgs.git ];
+          text = lib.pipe cfg.files [
+            (map (
+              { path_, drv }:
+              ''
+                dir=$(dirname ${path_})
+                mkdir -p "$dir"
+                cat ${drv} > ${lib.escapeShellArg path_}
+              ''
+            ))
+            (lib.concat [
+              ''
+                git_root="$(git rev-parse --show-toplevel)"
+                cd "$git_root"
+              ''
+            ])
+            lib.concatLines
+          ];
+        };
+
+        checks = lib.pipe cfg.files [
+          (map (
+            { path_, drv }:
+            {
+              name = "files/${path_}";
+              value =
+                pkgs.runCommand "check-file-${path_}"
+                  {
+                    nativeBuildInputs = [ pkgs.difftastic ];
+                  }
+                  ''
+                    difft --exit-code --display inline ${drv} ${cfg.projectRoot + "/${path_}"}
+                    touch $out
+                  '';
+            }
+          ))
+          lib.listToAttrs
+        ];
+      };
     }
   );
 }
