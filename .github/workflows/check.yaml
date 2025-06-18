@@ -7,7 +7,10 @@
           "uses": "actions/checkout@v4"
         },
         {
-          "uses": "DeterminateSystems/nix-installer-action@main"
+          "uses": "DeterminateSystems/nix-installer-action@main",
+          "with": {
+            "extra-conf": "extra-system-features = recursive-nix\n"
+          }
         },
         {
           "uses": "DeterminateSystems/magic-nix-cache-action@main"

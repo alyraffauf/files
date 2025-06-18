@@ -17,7 +17,12 @@ in
               runs-on = "ubuntu-latest";
               steps = [
                 { uses = "actions/checkout@v4"; }
-                { uses = "DeterminateSystems/nix-installer-action@main"; }
+                {
+                  uses = "DeterminateSystems/nix-installer-action@main";
+                  "with".extra-conf = ''
+                    extra-system-features = recursive-nix
+                  '';
+                }
                 { uses = "DeterminateSystems/magic-nix-cache-action@main"; }
                 { run = "nix flake --accept-flake-config check ./dev --print-build-logs"; }
               ];
