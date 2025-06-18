@@ -37,8 +37,6 @@ let
     '';
 in
 {
-  flake.meta.readme = text;
-
   perSystem =
     { pkgs, ... }:
     {
