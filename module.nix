@@ -13,7 +13,7 @@
             description = ''
               File paths are relative to this.
             '';
-            example = "./.";
+            example = lib.literalExpression "./.";
           };
 
           files = lib.mkOption {
@@ -22,30 +22,29 @@
             '';
             default = [ ];
             example =
-              # nix
-              ''
-                [
-                  {
-                    path_ = "README.md";
-                    drv =
-                      pkgs.writeText
-                        "README.md"
-                        # markdown
-                        '''
-                          # Practical Project
+              lib.literalExpression
+                # nix
+                ''
+                  [
+                    {
+                      path_ = "README.md";
+                      drv =
+                        pkgs.writeText "README.md"
+                          # markdown
+                          '''
+                            # Practical Project
 
-                          Clear documentation
-                        ''';
-                  }
-                  {
-                    path_ = ".gitignore";
-                    drv =
-                      pkgs.writeText ".gitignore" '''
+                            Clear documentation
+                          ''';
+                    }
+                    {
+                      path_ = ".gitignore";
+                      drv = pkgs.writeText ".gitignore" '''
                         result
                       ''';
-                  }
-                ]
-              '';
+                    }
+                  ]
+                '';
             type = lib.types.listOf (
               lib.types.submodule {
                 options = {
