@@ -20,6 +20,7 @@ in
                 {
                   uses = "DeterminateSystems/nix-installer-action@main";
                   "with".extra-conf = ''
+                    extra-experimental-features = recursive-nix
                     extra-system-features = recursive-nix
                   '';
                 }

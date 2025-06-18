@@ -9,7 +9,7 @@
         {
           "uses": "DeterminateSystems/nix-installer-action@main",
           "with": {
-            "extra-conf": "extra-system-features = recursive-nix\n"
+            "extra-conf": "extra-experimental-features = recursive-nix\nextra-system-features = recursive-nix\n"
           }
         },
         {
