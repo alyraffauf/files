@@ -51,6 +51,9 @@
                 options = {
                   path_ = lib.mkOption {
                     type = lib.types.singleLineStr;
+                    description = ''
+                      File path.
+                    '';
                   };
                   drv = lib.mkOption {
                     description = ''
