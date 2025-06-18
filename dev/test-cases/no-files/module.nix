@@ -2,7 +2,6 @@
   perSystem =
     { pkgs, ... }:
     {
-      files.projectRoot = ./.;
       packages.default = pkgs.writeShellApplication {
         name = "script";
         text = ''

@@ -5,15 +5,12 @@
       path_ = "some-file.txt";
     in
     {
-      files = {
-        projectRoot = ./.;
-        files = [
-          {
-            inherit path_;
-            drv = pkgs.writeText "some-file.txt" "";
-          }
-        ];
-      };
+      files.files = [
+        {
+          inherit path_;
+          drv = pkgs.writeText "some-file.txt" "";
+        }
+      ];
       packages.default = pkgs.writeShellApplication {
         name = "script";
         text = ''

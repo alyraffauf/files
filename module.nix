@@ -1,4 +1,9 @@
-{ flake-parts-lib, lib, ... }:
+{
+  flake-parts-lib,
+  lib,
+  self,
+  ...
+}:
 {
   options.perSystem = flake-parts-lib.mkPerSystemOption (
     psArgs@{ pkgs, ... }:
@@ -8,17 +13,28 @@
     {
       options = {
         files = {
-          projectRoot = lib.mkOption {
+          gitToplevel = lib.mkOption {
             type = lib.types.path;
+            default = self;
+            defaultText = lib.literalExpression "self";
             description = ''
-              File paths are relative to this.
+              Each check is performed by copying the existing file into the store
+              and comparing its contents with the configured contents.
+
+              For that purpose a path to the file must be provided to Nix.
+              Configured file paths are relative to the Git top-level.
+              But Nix is oblivious to the Git top-level.
+              So file paths are resolved relative to the value of this option.
+
+              The default value is correct when the flake is at the Git top-level.
+              Otherwise the correct Git top-level must be provided.
             '';
-            example = lib.literalExpression "./.";
+            example = lib.literalExpression "../.";
           };
 
           files = lib.mkOption {
             description = ''
-              Files to create.
+              Files to be written and checked for.
             '';
             default = [ ];
             example =
@@ -49,18 +65,37 @@
               lib.types.submodule {
                 options = {
                   path_ = lib.mkOption {
-                    type = lib.types.singleLineStr;
+                    type = lib.types.str;
                     description = ''
-                      File path.
+                      File path relative to Git top-level.
                     '';
+                    example = lib.literalExpression ''".github/workflows/check.yaml"'';
                   };
                   drv = lib.mkOption {
                     description = ''
-                      Out path is expected to be a file.
-                      Directory out path not supported.
-                      Pull request welcome!
+                      Provide the file as a derivation.
+                      The out path is expected to be a file.
+                      Directory out path not supported;
+                      pull request welcome!
                     '';
                     type = lib.types.package;
+                    example =
+                      lib.literalExpression
+                        # nix
+                        ''
+                          pkgs.writers.writeJSON "gh-actions-workflow-check.yaml" {
+                            on.push = { };
+                            jobs.check = {
+                              runs-on = "ubuntu-latest";
+                              steps = [
+                                { uses = "actions/checkout@v4"; }
+                                { uses = "DeterminateSystems/nix-installer-action@main"; }
+                                { uses = "DeterminateSystems/magic-nix-cache-action@main"; }
+                                { run = "nix flake check"; }
+                              ];
+                            };
+                          }
+                        '';
                   };
                 };
               }
@@ -74,13 +109,13 @@
               description = ''
                 The writer executable filename.
               '';
-              example = lib.literalExpression "files-write";
+              example = lib.literalExpression ''"files-write"'';
             };
             drv = lib.mkOption {
               description = ''
-                Provides as executable that writes configured files and their contents
-                to their configured paths, relative to the configured project root
-                within the top-level directory of the current git repository.
+                Provides an executable
+                that writes each configured file's contents to its path.
+                Missing parent directories are created.
 
                 Consider including this in the project's development shell.
               '';
@@ -106,8 +141,8 @@
             ))
             (lib.concat [
               ''
-                git_root="$(git rev-parse --show-toplevel)"
-                cd "$git_root"
+                toplevel="$(git rev-parse --show-toplevel)"
+                cd "$toplevel"
               ''
             ])
             lib.concatLines
@@ -125,7 +160,7 @@
                     nativeBuildInputs = [ pkgs.difftastic ];
                   }
                   ''
-                    difft --exit-code --display inline ${drv} ${cfg.projectRoot + "/${path_}"}
+                    difft --exit-code --display inline ${drv} ${cfg.gitToplevel + "/${path_}"}
                     touch $out
                   '';
             }

@@ -2,17 +2,14 @@
   perSystem =
     psArgs@{ pkgs, ... }:
     {
-      files = {
-        projectRoot = ./.;
-        files = [
-          {
-            path_ = "dir/file.txt";
-            drv = pkgs.writeText "file-in-dir.txt" ''
-              Contents match
-            '';
-          }
-        ];
-      };
+      files.files = [
+        {
+          path_ = "dir/file.txt";
+          drv = pkgs.writeText "file-in-dir.txt" ''
+            Contents match
+          '';
+        }
+      ];
       packages = {
         writer = psArgs.config.files.writer.drv;
 

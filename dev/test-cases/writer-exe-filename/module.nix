@@ -6,7 +6,6 @@
     in
     {
       files = {
-        projectRoot = ./.;
         writer.exeFilename = "write-files-please";
         files = [
           {
