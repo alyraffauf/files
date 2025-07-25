@@ -71,6 +71,7 @@
                     '';
                     example = lib.literalExpression ''".github/workflows/check.yaml"'';
                   };
+
                   drv = lib.mkOption {
                     description = ''
                       Provide the file as a derivation.
@@ -96,6 +97,15 @@
                             };
                           }
                         '';
+                  };
+
+                  checkFile = lib.mkOption {
+                    type = lib.types.bool;
+                    default = true;
+                    description = ''
+                      If true, generate (and run) the check that diffs this file
+                      against what’s in the repo. Set to false to skip.
+                    '';
                   };
                 };
               }
@@ -132,7 +142,7 @@
           runtimeInputs = [ pkgs.git ];
           text = lib.pipe cfg.files [
             (map (
-              { path_, drv }:
+              { path_, drv, ... }:
               ''
                 dir=$(dirname ${path_})
                 mkdir -p "$dir"
@@ -150,8 +160,9 @@
         };
 
         checks = lib.pipe cfg.files [
+          (lib.filter (f: f.checkFile))
           (map (
-            { path_, drv }:
+            { path_, drv, ... }:
             {
               name = "files/${path_}";
               value =
